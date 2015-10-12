@@ -40,6 +40,8 @@ In accordance with our backward compatibility policy :func:`OpenSSL.rand.egd` wi
 Changes:
 ^^^^^^^^
 
+- Added :func:`OpenSSL.crypto.PKCS7.get_certificates`, :func:`OpenSSL.crypto.PKCS7.get_crls`, and :func:`OpenSSL.crypto.PKCS7.get_data` to extract certificates, CRL's, and data from certain types of PKCS#7 objects. Also, added :func:`OpenSSL.crypto.PKCS7.type_is_encrypted` and :func:`OpenSSL.crypto.PKCS7.type_is_digested` to support querying additional PKCS#7 object types.
+  [`#367 <https://github.com/pyca/pyopenssl/pull/367>`_]
 - Added :func:`OpenSSL.crypto.dump_publickey` to dump :class:`OpenSSL.crypto.PKey` objects that represent public keys, and :func:`OpenSSL.crypto.load_publickey` to load such objects from serialized representations.
   [`#382 <https://github.com/pyca/pyopenssl/pull/382>`_]
 - Added :func:`OpenSSL.crypto.dump_crl` to dump a certificate revocation list out to a string buffer.

@@ -2042,53 +2042,152 @@ CRLType = CRL
 class PKCS7(object):
     def type_is_signed(self):
         """
-        Check if this NID_pkcs7_signed object
+        Check if this is a NID_pkcs7_signed object, which contains unencrypted
+        data and encrypted message digests for each signer.
 
-        :return: True if the PKCS7 is of type signed
+        :return: :const:`True` if the PKCS7 is of type ``signedData``,
+            :const:`False` otherwise.
+        :rtype: :class:`bool`
         """
-        if _lib.PKCS7_type_is_signed(self._pkcs7):
-            return True
-        return False
+        return _lib.PKCS7_type_is_signed(self._pkcs7)
+
+    def type_is_encrypted(self):
+        """
+        Check if this is a NID_pkcs7_encrypted object, which contains
+        unencrypted data and encrypted message digests for each signer.
+
+        :returns: :const:`True` if the PKCS7 is of type ``encryptedData``,
+            :const:`False` otherwise.
+        :rtype: :class:`bool`
+        """
+        return _lib.PKCS7_type_is_encrypted(self._pkcs7)
 
     def type_is_enveloped(self):
         """
-        Check if this NID_pkcs7_enveloped object
+        Check if this is a NID_pkcs7_enveloped object, which contains encrypted
+        data and encrypted decryption keys for each recipient.
 
-        :returns: True if the PKCS7 is of type enveloped
+        :returns: :const:`True` if the PKCS7 is of type ``envelopedData``,
+            :const:`False` otherwise.
+        :rtype: :class:`bool`
         """
-        if _lib.PKCS7_type_is_enveloped(self._pkcs7):
-            return True
-        return False
+        return _lib.PKCS7_type_is_enveloped(self._pkcs7)
 
     def type_is_signedAndEnveloped(self):
         """
-        Check if this NID_pkcs7_signedAndEnveloped object
+        Check if this is a NID_pkcs7_signedAndEnveloped object, which contains
+        encrypted data, encrypted decryption keys for each recipient, and
+        doubly encrypted message digests.
 
-        :returns: True if the PKCS7 is of type signedAndEnveloped
+        :returns: :const:`True` if the PKCS7 is of type
+            ``signedAndEnveloped``,:const:`False` otherwise.
+        :rtype: :class:`bool`
         """
-        if _lib.PKCS7_type_is_signedAndEnveloped(self._pkcs7):
-            return True
-        return False
+        return _lib.PKCS7_type_is_signedAndEnveloped(self._pkcs7)
 
     def type_is_data(self):
         """
-        Check if this NID_pkcs7_data object
+        Check if this is a NID_pkcs7_data object, which contains plain data.
 
-        :return: True if the PKCS7 is of type data
+        :return: :const:`True` if the PKCS7 is of type ``data``,
+            :const:`False` otherwise.
+        :rtype: :class:`bool`
         """
-        if _lib.PKCS7_type_is_data(self._pkcs7):
-            return True
-        return False
+        return _lib.PKCS7_type_is_data(self._pkcs7)
+
+    def type_is_digest(self):
+        """
+        Check if this is a NID_pkcs7_digested object, which contains
+        unencrypted data and a message digest.
+
+        :return: :const:`True` if the PKCS7 is of type ``digestedData``,
+            :const:`False` otherwise.
+        :rtype: :class:`bool`
+        """
+        return _lib.PKCS7_type_is_digest(self._pkcs7)
 
     def get_type_name(self):
         """
-        Returns the type name of the PKCS7 structure
+        Returns the type name of the PKCS7 structure.
 
-        :return: A string with the typename
+        :return: A string with the type name.
+        :rtype: :class:`str`
         """
         nid = _lib.OBJ_obj2nid(self._pkcs7.type)
         string_type = _lib.OBJ_nid2sn(nid)
         return _ffi.string(string_type)
+
+    def get_certificates(self):
+        """
+        Returns all certificates for the PKCS7 structure, if present. Only
+        objects of type ``signedData`` or ``signedAndEnvelopedData`` can embed
+        certificates.
+
+        :return: The certificates in the PKCS7, or :const:`None` if
+            there are none.
+        :rtype: :class:`tuple` of :class:`X509` or :const:`None`
+        """
+        certs = _ffi.NULL
+        if self.type_is_signed():
+            certs = self._pkcs7.d.sign.cert
+        elif self.type_is_signedAndEnveloped():
+            certs = self._pkcs7.d.signed_and_enveloped.cert
+
+        pycerts = []
+        for i in range(_lib.sk_X509_num(certs)):
+            pycert = X509.__new__(X509)
+            pycert._x509 = _lib.sk_X509_value(certs, i)
+            pycerts.append(pycert)
+        if not pycerts:
+            return None
+        return tuple(pycerts)
+
+    def get_crls(self):
+        """
+        Returns all CRL's for the PKCS7 structure, if present. Only objects of
+        type ``signedData`` or ``signedAndEnvelopedData`` can embed CRL's.
+
+        :return: The CRL's in the PKCS7, or :const:`None` if there are none.
+        :rtype: :class:`tuple` of :class:`CRL` or :const:`None`.
+        """
+        crls = _ffi.NULL
+        if self.type_is_signed():
+            crls = self._pkcs7.d.sign.crl
+        elif self.type_is_signedAndEnveloped():
+            crls = self._pkcs7.d.signed_and_enveloped.crl
+
+        pycrls = []
+        for i in range(_lib.sk_X509_CRL_num(crls)):
+            pycrl = CRL.__new__(CRL)
+            pycrl._crl = _lib.sk_X509_CRL_value(crls, i)
+            pycrls.append(pycrl)
+        if not pycrls:
+            return None
+        return tuple(pycrls)
+
+    def get_data(self):
+        """
+        Returns the unencrypted data from within the PKCS7 structure. Only
+        objects of type ``data``, ``digestedData``, and ``signedData`` can
+        contain unencrypted data.
+
+        :raises ValueError: If the data is encrypted.
+        :return: A string with the data.
+        :rtype: :class:`str`.
+        """
+        bio = _lib.PKCS7_dataInit(self._pkcs7, _ffi.NULL)
+        if bio == _ffi.NULL:
+            try:
+                _raise_current_error()
+            except Error:
+                pass
+            raise ValueError("encrypted data not supported")
+        bio = _ffi.gc(bio, _lib.BIO_free_all)
+
+        buf = _ffi.new("char *")
+        _lib.BIO_get_mem_data(bio, [buf])
+        return _ffi.string(buf)
+
 
 PKCS7Type = PKCS7
 
@@ -2665,7 +2764,7 @@ def load_crl(type, buffer):
     :param type: The file type (one of FILETYPE_PEM, FILETYPE_ASN1)
     :param buffer: The buffer the CRL is stored in
 
-    :return: The PKey object
+    :return: The CRL object
     """
     if isinstance(buffer, _text_type):
         buffer = buffer.encode("ascii")
@@ -2705,8 +2804,6 @@ def load_pkcs7_data(type, buffer):
     elif type == FILETYPE_ASN1:
         pkcs7 = _lib.d2i_PKCS7_bio(bio, _ffi.NULL)
     else:
-        # TODO: This is untested.
-        _raise_current_error()
         raise ValueError("type argument must be FILETYPE_PEM or FILETYPE_ASN1")
 
     if pkcs7 == _ffi.NULL:

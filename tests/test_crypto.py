@@ -315,12 +315,12 @@ ywIDAQAB
 
 # Some PKCS#7 stuff.  Generated with the openssl command line:
 #
-#    openssl crl2pkcs7 -inform pem -outform pem -certfile s.pem -nocrl
+#    openssl crl2pkcs7 -in crl.pem -certfile cert.pem
 #
-# with a certificate and key (but the key should be irrelevant) in s.pem
-pkcs7Data = b("""\
+# with a certificate and crl
+pkcs7signedData = b("""\
 -----BEGIN PKCS7-----
-MIIDNwYJKoZIhvcNAQcCoIIDKDCCAyQCAQExADALBgkqhkiG9w0BBwGgggMKMIID
+MIIEmAYJKoZIhvcNAQcCoIIEiTCCBIUCAQExADALBgkqhkiG9w0BBwGgggMKMIID
 BjCCAm+gAwIBAgIBATANBgkqhkiG9w0BAQQFADB7MQswCQYDVQQGEwJTRzERMA8G
 A1UEChMITTJDcnlwdG8xFDASBgNVBAsTC00yQ3J5cHRvIENBMSQwIgYDVQQDExtN
 MkNyeXB0byBDZXJ0aWZpY2F0ZSBNYXN0ZXIxHTAbBgkqhkiG9w0BCQEWDm5ncHNA
@@ -337,11 +337,97 @@ Q2VydGlmaWNhdGUgTWFzdGVyMR0wGwYJKoZIhvcNAQkBFg5uZ3BzQHBvc3QxLmNv
 bYIBADANBgkqhkiG9w0BAQQFAAOBgQA7/CqT6PoHycTdhEStWNZde7M/2Yc6BoJu
 VwnW8YxGO8Sn6UJ4FeffZNcYZddSDKosw8LtPOeWoK3JINjAk5jiPQ2cww++7QGG
 /g5NDjxFZNDJP1dGiLAxPW6JXwov4v0FmdzfLOZ01jDcgQQZqEpYlgpuI5JEWUQ9
-Ho4EzbYCOaEAMQA=
+Ho4EzbYCOaGCAV8wggFbMIHFMA0GCSqGSIb3DQEBBAUAMFgxCzAJBgNVBAYTAlVT
+MQswCQYDVQQIEwJJTDEQMA4GA1UEBxMHQ2hpY2FnbzEQMA4GA1UEChMHVGVzdGlu
+ZzEYMBYGA1UEAxMPVGVzdGluZyBSb290IENBFw0wOTA3MjYwNDM0NTZaFw0xMjA5
+MjcwMjQxNTJaMDwwFQICA6sYDzIwMDkwNzI1MjMzNDU2WjAjAgIBABgPMjAwOTA3
+MjUyMzM0NTZaMAwwCgYDVR0VBAMKAQQwDQYJKoZIhvcNAQEEBQADgYEAQG3vFOza
+G10Pd3gSutwYDDXh0pxWchZO62gjvHF6fbpbC+HxUKxPuL9R4/6sGX2sL+R+NaPN
+CTf/OV5pqsZOkFPTKngddEUWhGGFIT+E/5615o9dGCuw1Esd71kN3r3CaHsnXAwN
+vSbzVEbuSpxuyJ2+vMR4sNGKI+X3Z3LJaa4xAA==
 -----END PKCS7-----
 """)
 
-pkcs7DataASN1 = base64.b64decode(b"""
+pkcs7envelopedData = b("""\
+-----BEGIN PKCS7-----
+MIIFfAYJKoZIhvcNAQcDoIIFbTCCBWkCAQAxgdowgdcCAQAwQDA7MRAwDgYDVQQG
+EwdHZXJtYW55MRYwFAYDVQQKEw1GbGV4aVByb3ZpZGVyMQ8wDQYDVQQDEwZVc2Vy
+Q0ECAQIwDQYJKoZIhvcNAQEBBQAEgYBCYVSOJ7nqOn4byxxIZsQwpiZwXeMD8hFz
+nUZ8gKOSKsD7iQH0yUp5q6Igfx3PRZWW59zfGXVIcyOj0mn7GQCf/IOtzCsLLS1+
+fZeFaOHhKQC1gbJkTEoHUT88xrDXj3veLnn/8k3myQp8vhDwlIxrFV+YUatBBUy+
+ck3ItTNp8TCCBIUGCSqGSIb3DQEHATAUBggqhkiG9w0DBwQIqXatloAHto2AggRg
+y/pMO/QbYTzN4q7U9LKZhdMRdtuqpPCtdvTFLBS2TW+XTUAFoRcn1hU4fi/qBRKh
+Cvc1vN/whPbTtxRJRdGuraVrhK/IyNi2O/UUNN+6jn6vj/MusNn7NDOqduPQtphG
+4gRDdD87OJ4Y7NWU1kwDHWyLuagO+nFsZclN9VnV9r7w7oYNchrZJRDaZ4cH96rF
+UdrLrTXjBRUdQnHu7jovZITK4hHcMlnfUPwxtqkEFh84/lQdW2Y688BR/Uk9LmRw
+RY+Oe4NS9AU2AqhmBESkg/MlcTtthNaHhXpqnTAjqKZjuvXLSIVM6nj7rSClEq46
+ef+yN067qxD+nh+599Vf67ZMxvMQ7UaX7QEUieSZHsbk7epHrk0SVNcePkSh9ZYs
+3KlovmC8DhK4i9ktB0kZ9XzX3r8vmYmm3q5RQk21Jy8aRxYFGXTQpGZVUTz407E+
+iIqgWuJzYdJ8j5Fkcbx5WH+CTEaFtPe5g+/D7gL2m3HZJtLhUgD75Wab/1/KHi7k
+IgKN2mSWNB6nGp9SC048yvkiAGFacNiJ4xXaGoTTq62v0Z6qaSbXdXryoOQyNbYo
+p36trwneXTHxberq8x0Mo23e6g2IoZK6eb+NRUFLX+KEYoEyJXLb0Ih7ujlb0zgD
+ektseDAxNQJO5diWGVzKqPgl9pKPyYCa+B1d66VzugxPcYN7v3wHs9xxwIGPTpfg
+rZSMFF6nYtEIfctCqf5rutmwhLu7kKoxueVpnFBKW2W1DOdfuz7LOnwpTw0Ki0OX
+Kh8yGpLf260uvPJVtcY00Cdm2dAnoh3uzqVEYZ0/q0A+tQS7A46FwEL8M/ubpTsJ
+1R86xQMGWLVN9+dt2YlX4Ad5jz5VdEMg2XDbEDXeavbxj+o0a6Vq3kpc4wGdh9uh
+YmaawgqhRcWJ/hAbTqhzE5UBNZxw1AQ56pQiT46GMLaWt/HXAkt9gjIFOoS7fh4I
+mJOy8GjTqXx34UPC6WQzfj62ntXBOELB3fQEOwIheD7nyiUK2djNI09TH8DpagsZ
+IV7RmZH3RHzEf14KgP0hNsLUO2z019nm7PhDrP5o0ZkaHGWQZoAiZnRFukxGJVTh
+rfEgcLKqrltseKe5SuoxZ9ryjY64iNDyHtVYRnVJXEAvEe8/v8+Z1ih5dDzPl8TT
+BDFLQFdBu6t+rrJFepuSVkju31UtOoYGxHRjPNGEY22onn6B04jMKZ+SnnRfyoSZ
+1TKZkgXCKJ/SIUcF/+q56Lybq67cnZia9RJlsTQLpChNa4meCJHVKw6oso8j557n
+NYa86EplogAVqdOXh1nqYahyn0m4AOeakIsWpLirIivhIGhDhyuYsSgJunAOlHvf
+DBmyCCL9yPo4M2hTflrOiYAbGqpyMpUhA+RNY4hLGfzSIBIXA/K1LUzSvlpMQT0N
+FqiZQpJKxWEowF/x8q8r3tdf8ZEUIcr4Lo0qUNxKS7F6/6C8h/4G1uufLLkFcRWU
+IIL6J9q2h4cuj3H3/ju5Gw==
+-----END PKCS7-----
+""")
+
+pkcs7signedAndEnvelopedData = b("""\
+-----BEGIN PKCS7-----
+MIIHNwYJKoZIhvcNAQcEoIIHKDCCByQCAQExggEwMIIBLAIBADCBlDCBjjELMAkG
+A1UEBhMCVVMxCzAJBgNVBAgTAkNBMRYwFAYDVQQHEw1Nb3VudGFpbiBWaWV3MRQw
+EgYDVQQKEwtQYXlQYWwgSW5jLjETMBEGA1UECxQKbGl2ZV9jZXJ0czERMA8GA1UE
+AxQIbGl2ZV9hcGkxHDAaBgkqhkiG9w0BCQEWDXJlQHBheXBhbC5jb20CAQAwDQYJ
+KoZIhvcNAQEBBQAEgYBkrJPgALmo/LGB8skyFqfBfBKLSJWZw+MuzL/CYWLni16o
+L3Qa8Ey5yGtIPEGeYv96poWWCdZB+h3qKs0piVAYuQVAvGUm0pX6Rfu6yDmDNyfl
+k9DJxioxz+40UG79m30iPDZGJuzE4AED3MRPwpA7G9zRQzqPEsx+3IvnB9FiXTEL
+MAkGBSsOAwIaBQAwgbQGCSqGSIb3DQEHATAUBggqhkiG9w0DBwQIGUE/OueinRKA
+gZAxOlf1z3zkHe1RItV4/3tLYyH8ndm1MMVTcX8BjwR7x3g5KdyalvG5CCDKD5dm
++t/GvNJOE4PuTIuz/Fb3TfJZpCJHd/UoOni0+9p/1fZ5CNOQWBJxcpNvDal4PL7h
+uHq4MK3vGP+dP34ywAuHCMNNvpxRuv/lCAGmarbPfMzjkZKDFgBMNZhwq5giWxxe
+zIygggOHMIIDgzCCAuygAwIBAgIBADANBgkqhkiG9w0BAQUFADCBjjELMAkGA1UE
+BhMCVVMxCzAJBgNVBAgTAkNBMRYwFAYDVQQHEw1Nb3VudGFpbiBWaWV3MRQwEgYD
+VQQKEwtQYXlQYWwgSW5jLjETMBEGA1UECxQKbGl2ZV9jZXJ0czERMA8GA1UEAxQI
+bGl2ZV9hcGkxHDAaBgkqhkiG9w0BCQEWDXJlQHBheXBhbC5jb20wHhcNMDQwMjEz
+MTAxMzE1WhcNMzUwMjEzMTAxMzE1WjCBjjELMAkGA1UEBhMCVVMxCzAJBgNVBAgT
+AkNBMRYwFAYDVQQHEw1Nb3VudGFpbiBWaWV3MRQwEgYDVQQKEwtQYXlQYWwgSW5j
+LjETMBEGA1UECxQKbGl2ZV9jZXJ0czERMA8GA1UEAxQIbGl2ZV9hcGkxHDAaBgkq
+hkiG9w0BCQEWDXJlQHBheXBhbC5jb20wgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJ
+AoGBAMFHTt38RMxLXJyO2SmS+Ndl72T7oKJ4u4uw+6awntALWh03PewmIJuzbALS
+csTS4sZoS1fKciBGoh11gIfHzylvkdNe/hJl66/RGqrj5rFb08sAABNTzDTiqqNp
+JeBsYs/c2aiGozptX2RlnBktH+SUNpAajW724Nv2Wvhif6sFAgMBAAGjge4wgesw
+HQYDVR0OBBYEFJaffLvGbxe9WT9S1wob7BDWZJRrMIG7BgNVHSMEgbMwgbCAFJaf
+fLvGbxe9WT9S1wob7BDWZJRroYGUpIGRMIGOMQswCQYDVQQGEwJVUzELMAkGA1UE
+CBMCQ0ExFjAUBgNVBAcTDU1vdW50YWluIFZpZXcxFDASBgNVBAoTC1BheVBhbCBJ
+bmMuMRMwEQYDVQQLFApsaXZlX2NlcnRzMREwDwYDVQQDFAhsaXZlX2FwaTEcMBoG
+CSqGSIb3DQEJARYNcmVAcGF5cGFsLmNvbYIBADAMBgNVHRMEBTADAQH/MA0GCSqG
+SIb3DQEBBQUAA4GBAIFfOlaagFrl71+jq6OKidbWFSE+Q4FqROvdgIONth+8kSK/
+/Y/4ihuE4Ymvzn5ceE3S/iBSQQMjyvb+s2TWbQYDwcp129OPIbD9epdr4tJOUNiS
+ojw7BHwYRiPh58S1xGlFgHFXwrEBb3dgNbMUa+u4qectsMAXpVHnD9wIyfmHMYIB
+mjCCAZYCAQEwgZQwgY4xCzAJBgNVBAYTAlVTMQswCQYDVQQIEwJDQTEWMBQGA1UE
+BxMNTW91bnRhaW4gVmlldzEUMBIGA1UEChMLUGF5UGFsIEluYy4xEzARBgNVBAsU
+CmxpdmVfY2VydHMxETAPBgNVBAMUCGxpdmVfYXBpMRwwGgYJKoZIhvcNAQkBFg1y
+ZUBwYXlwYWwuY29tAgEAMAkGBSsOAwIaBQCgXTAYBgkqhkiG9w0BCQMxCwYJKoZI
+hvcNAQcBMBwGCSqGSIb3DQEJBTEPFw0wNjA4MjAxNjIxMTVaMCMGCSqGSIb3DQEJ
+BDEWBBReCImckWP2YVDgKuREfLjvk42e6DANBgkqhkiG9w0BAQEFAASBgFryzr+4
+FZUo4xD7k2BYMhXpZWOXjvt0EPbeIXDvAaU0zO91t0wdZ1osmeoJaprUdAv0hz2l
+Vt0g297WD8qUxoeL6F6kMZlSpJfTLtIt85dgQpG+aGt88A6yGFzVVPO1hbNWp8z8
+Z7Db2B9DNxggdfBfSnfzML+ejp+lEKG7W5ue
+-----END PKCS7-----
+""")
+
+pkcs7signedDataASN1 = base64.b64decode(b"""
 MIIDNwYJKoZIhvcNAQcCoIIDKDCCAyQCAQExADALBgkqhkiG9w0BBwGgggMKMIID
 BjCCAm+gAwIBAgIBATANBgkqhkiG9w0BAQQFADB7MQswCQYDVQQGEwJTRzERMA8G
 A1UEChMITTJDcnlwdG8xFDASBgNVBAsTC00yQ3J5cHRvIENBMSQwIgYDVQQDExtN
@@ -2691,26 +2777,35 @@ class FunctionTests(TestCase):
 
     def test_load_pkcs7_data_pem(self):
         """
-        :py:obj:`load_pkcs7_data` accepts a PKCS#7 string and returns an
-        instance of :py:obj:`PKCS7Type`.
+        :obj:`load_pkcs7_data` accepts a PKCS#7 string and returns an
+        instance of :obj:`PKCS7Type`.
         """
-        pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
-        self.assertTrue(isinstance(pkcs7, PKCS7Type))
+        pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7signedData)
+        assert isinstance(pkcs7, PKCS7Type)
 
     def test_load_pkcs7_data_asn1(self):
         """
-        :py:obj:`load_pkcs7_data` accepts a bytes containing ASN1 data
-        representing PKCS#7 and returns an instance of :py:obj`PKCS7Type`.
+        :obj:`load_pkcs7_data` accepts a bytes containing ASN1 data
+        representing PKCS#7 and returns an instance of :obj`PKCS7Type`.
         """
-        pkcs7 = load_pkcs7_data(FILETYPE_ASN1, pkcs7DataASN1)
-        self.assertTrue(isinstance(pkcs7, PKCS7Type))
+        pkcs7 = load_pkcs7_data(FILETYPE_ASN1, pkcs7signedDataASN1)
+        assert isinstance(pkcs7, PKCS7Type)
+
+    def test_load_pkcs7_filetype_invalid(self):
+        """
+        If the file type passed to :obj:`load_pkcs7_data` is invalid, then
+        :obj:`ValueError` is raised.
+        """
+        with pytest.raises(ValueError):
+            load_pkcs7_data(100, pkcs7signedData)
 
     def test_load_pkcs7_data_invalid(self):
         """
-        If the data passed to :py:obj:`load_pkcs7_data` is invalid,
-        :py:obj:`Error` is raised.
+        If the data passed to :obj:`load_pkcs7_data` is invalid,
+        :obj:`Error` is raised.
         """
-        self.assertRaises(Error, load_pkcs7_data, FILETYPE_PEM, b"foo")
+        with pytest.raises(Error):
+            load_pkcs7_data(FILETYPE_PEM, "foo")
 
 
 class LoadCertificateTests(TestCase):
@@ -2729,109 +2824,243 @@ class LoadCertificateTests(TestCase):
 
 class PKCS7Tests(TestCase):
     """
-    Tests for :py:obj:`PKCS7Type`.
+    Tests for :obj:`PKCS7Type`.
     """
 
     def test_type(self):
         """
-        :py:obj:`PKCS7Type` is a type object.
+        :obj:`PKCS7Type` is a type object.
         """
-        self.assertTrue(isinstance(PKCS7Type, type))
-        self.assertEqual(PKCS7Type.__name__, 'PKCS7')
-
-        # XXX This doesn't currently work.
-        # self.assertIdentical(PKCS7, PKCS7Type)
-
-    # XXX Opposite results for all these following methods
+        assert isinstance(PKCS7Type, type)
+        assert PKCS7Type.__name__ == 'PKCS7'
 
     def test_type_is_signed_wrong_args(self):
         """
-        :py:obj:`PKCS7Type.type_is_signed` raises :py:obj:`TypeError` if called
+        :obj:`PKCS7Type.type_is_signed` raises :obj:`TypeError` if called
         with any arguments.
         """
-        pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
-        self.assertRaises(TypeError, pkcs7.type_is_signed, None)
+        pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7signedData)
+        with pytest.raises(TypeError):
+            pkcs7.type_is_signed(None)
 
     def test_type_is_signed(self):
         """
-        :py:obj:`PKCS7Type.type_is_signed` returns :py:obj:`True` if the PKCS7
-        object is of the type *signed*.
+        :obj:`PKCS7Type.type_is_signed` returns :obj:`True` if the PKCS7
+        object is of the type ``signedData``.
         """
-        pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
-        self.assertTrue(pkcs7.type_is_signed())
+        pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7signedData)
+        assert pkcs7.type_is_signed()
+
+    def test_type_is_encrypted_wrong_args(self):
+        """
+        :obj:`PKCS7Type.type_is_encrypted` raises :obj:`TypeError` if
+        called with any arguments.
+        """
+        pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7signedData)
+        with pytest.raises(TypeError):
+            pkcs7.type_is_encrypted(None)
+
+    def test_type_is_encrypted(self):
+        """
+        :obj:`PKCS7Type.type_is_encrypted` returns :obj:`False` if the
+        PKCS7 object is not of the type ``encryptedData``.
+        """
+        pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7signedData)
+        assert not pkcs7.type_is_encrypted()
 
     def test_type_is_enveloped_wrong_args(self):
         """
-        :py:obj:`PKCS7Type.type_is_enveloped` raises :py:obj:`TypeError` if
+        :obj:`PKCS7Type.type_is_enveloped` raises :obj:`TypeError` if
         called with any arguments.
         """
-        pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
-        self.assertRaises(TypeError, pkcs7.type_is_enveloped, None)
+        pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7signedData)
+        with pytest.raises(TypeError):
+            pkcs7.type_is_enveloped(None)
 
     def test_type_is_enveloped(self):
         """
-        :py:obj:`PKCS7Type.type_is_enveloped` returns :py:obj:`False` if the
-        PKCS7 object is not of the type *enveloped*.
+        :obj:`PKCS7Type.type_is_enveloped` returns :obj:`False` if the
+        PKCS7 object is not of the type ``envelopedData``.
         """
-        pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
-        self.assertFalse(pkcs7.type_is_enveloped())
+        pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7signedData)
+        assert not pkcs7.type_is_enveloped()
 
     def test_type_is_signedAndEnveloped_wrong_args(self):
         """
-        :py:obj:`PKCS7Type.type_is_signedAndEnveloped` raises
-        :py:obj:`TypeError` if called with any arguments.
+        :obj:`PKCS7Type.type_is_signedAndEnveloped` raises
+        :obj:`TypeError` if called with any arguments.
         """
-        pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
-        self.assertRaises(TypeError, pkcs7.type_is_signedAndEnveloped, None)
+        pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7signedData)
+        with pytest.raises(TypeError):
+            pkcs7.type_is_signedAndEnveloped(None)
 
     def test_type_is_signedAndEnveloped(self):
         """
-        :py:obj:`PKCS7Type.type_is_signedAndEnveloped` returns :py:obj:`False`
-        if the PKCS7 object is not of the type *signed and enveloped*.
+        :obj:`PKCS7Type.type_is_signedAndEnveloped` returns :obj:`False`
+        if the PKCS7 object is not of the type ``signedAndEnvelopedData``.
         """
-        pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
-        self.assertFalse(pkcs7.type_is_signedAndEnveloped())
-
-    def test_type_is_data(self):
-        """
-        :py:obj:`PKCS7Type.type_is_data` returns :py:obj:`False` if the PKCS7
-        object is not of the type data.
-        """
-        pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
-        self.assertFalse(pkcs7.type_is_data())
+        pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7signedData)
+        assert not pkcs7.type_is_signedAndEnveloped()
 
     def test_type_is_data_wrong_args(self):
         """
-        :py:obj:`PKCS7Type.type_is_data` raises :py:obj:`TypeError` if called
+        :obj:`PKCS7Type.type_is_data` raises :obj:`TypeError` if called
         with any arguments.
         """
-        pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
-        self.assertRaises(TypeError, pkcs7.type_is_data, None)
+        pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7signedData)
+        with pytest.raises(TypeError):
+            pkcs7.type_is_data(None)
+
+    def test_type_is_data(self):
+        """
+        :obj:`PKCS7Type.type_is_data` returns :obj:`False` if the PKCS7
+        object is not of the type ``data``.
+        """
+        pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7signedData)
+        assert not pkcs7.type_is_data()
+
+    def test_type_is_digest_wrong_args(self):
+        """
+        :obj:`PKCS7Type.type_is_digest` raises :obj:`TypeError` if called
+        with any arguments.
+        """
+        pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7signedData)
+        with pytest.raises(TypeError):
+            pkcs7.type_is_digest(None)
+
+    def test_type_is_digest(self):
+        """
+        :obj:`PKCS7Type.type_is_digest` returns :obj:`False` if the PKCS7
+        object is not of the type ``digestedData``.
+        """
+        pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7signedData)
+        assert not pkcs7.type_is_digest()
 
     def test_get_type_name_wrong_args(self):
         """
-        :py:obj:`PKCS7Type.get_type_name` raises :py:obj:`TypeError` if called
+        :obj:`PKCS7Type.get_type_name` raises :obj:`TypeError` if called
         with any arguments.
         """
-        pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
-        self.assertRaises(TypeError, pkcs7.get_type_name, None)
+        pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7signedData)
+        with pytest.raises(TypeError):
+            pkcs7.get_type_name(None)
 
     def test_get_type_name(self):
         """
-        :py:obj:`PKCS7Type.get_type_name` returns a :py:obj:`str` giving the
+        :obj:`PKCS7Type.get_type_name` returns a :obj:`str` giving the
         type name.
         """
-        pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
-        self.assertEquals(pkcs7.get_type_name(), b('pkcs7-signedData'))
+        pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7signedData)
+        assert pkcs7.get_type_name() == b('pkcs7-signedData')
 
     def test_attribute(self):
         """
         If an attribute other than one of the methods tested here is accessed
-        on an instance of :py:obj:`PKCS7Type`, :py:obj:`AttributeError` is
+        on an instance of :obj:`PKCS7Type`, :obj:`AttributeError` is
         raised.
         """
-        pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7Data)
-        self.assertRaises(AttributeError, getattr, pkcs7, "foo")
+        pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7signedData)
+        with pytest.raises(AttributeError):
+            getattr(pkcs7, "foo")
+
+    def test_get_certificates_signed(self):
+        """
+        :obj:`PKCS7Type.get_certificates` returns :obj:`tuple` containing
+        a :obj:`OpenSSL.crypto.X509` certificate if the PKCS7 object has an
+        embedded certificate.
+        """
+        pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7signedData)
+
+        pkcs_cert = pkcs7.get_certificates()
+        assert len(pkcs_cert) == 1
+        assert isinstance(pkcs_cert[0], X509)
+
+        cert = pkcs_cert[0]
+        assert cert.get_serial_number() == 1
+        assert cert.get_subject().get_components() == [
+            (b('C'), b('SG')), (b('O'), b('M2Crypto')),
+            (b('CN'), b('localhost')),
+            (b('emailAddress'), b('ngps@post1.com'))]
+
+    def test_get_certificates_signedAndEnveloped(self):
+        """
+        :obj:`PKCS7Type.get_certificates` returns :obj:`tuple` containing
+        a :obj:`OpenSSL.crypto.X509` certificate if the PKCS7 object has an
+        embedded certificate.
+        """
+        pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7signedAndEnvelopedData)
+
+        pkcs_cert = pkcs7.get_certificates()
+        assert len(pkcs_cert) == 1
+        assert isinstance(pkcs_cert[0], X509)
+
+        cert = pkcs_cert[0]
+        assert cert.get_serial_number() == 0
+        assert cert.get_subject().get_components() == [
+            (b('C'), b('US')), (b('ST'), b('CA')),
+            (b('L'), b('Mountain View')), (b('O'), b('PayPal Inc.')),
+            (b('OU'), b('live_certs')), (b('CN'), b('live_api')),
+            (b('emailAddress'), b('re@paypal.com'))]
+
+    def test_get_certificates_wrong_type(self):
+        """
+        :obj:`PKCS7Type.get_certificates` returns :obj:`None` if the
+        PKCS7 object cannot contain any embedded certificates.
+        """
+        pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7envelopedData)
+        assert not pkcs7.get_certificates()
+
+    def test_get_crls_signed(self):
+        """
+        :obj:`PKCS7Type.get_crls` returns :obj:`tuple` containing a
+        :obj:`OpenSSL.crypto.CRL` if the PKCS7 object has an embedded
+        CRL.
+        """
+        pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7signedData)
+
+        pkcs7_crl = pkcs7.get_crls()
+        assert len(pkcs7_crl) == 1
+        assert isinstance(pkcs7_crl[0], CRL)
+
+        pkcs7_revoked = pkcs7_crl[0].get_revoked()
+        assert len(pkcs7_revoked) == 2
+        assert isinstance(pkcs7_revoked[0], Revoked)
+
+        assert pkcs7_revoked[0].get_serial() == b('03AB')
+        assert pkcs7_revoked[1].get_serial() == b('0100')
+
+    def test_get_crls_signedAndEnveloped(self):
+        """
+        :obj:`PKCS7Type.get_crls` returns :obj:`None` if the PKCS7 object
+        does not have an embedded :obj:`OpenSSL.crypto.CRL`.
+        """
+        pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7signedAndEnvelopedData)
+        assert not pkcs7.get_crls()
+
+    def test_get_crls_wrong_type(self):
+        """
+        :obj:`PKCS7Type.get_crls` returns :obj:`None` if the PKCS7 object
+        cannot contain any embedded :obj:`OpenSSL.crypto.CRL`'s.
+        """
+        pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7envelopedData)
+        assert not pkcs7.get_crls()
+
+    def test_get_data_signed(self):
+        """
+        :obj:`PKCS7Type.get_data` returns an empty string if the PKCS7
+        object does not have embedded data.
+        """
+        pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7signedData)
+        assert pkcs7.get_data() == b""
+
+    def test_get_data_wrong_type(self):
+        """
+        :obj:`PKCS7Type.get_data` raises a :obj:`ValueError` if the PKCS7
+        object cannot contain any unencrypted data.
+        """
+        pkcs7 = load_pkcs7_data(FILETYPE_PEM, pkcs7envelopedData)
+        with pytest.raises(ValueError):
+            pkcs7.get_data()
 
 
 class NetscapeSPKITests(TestCase, _PKeyInteractionTestsMixin):
