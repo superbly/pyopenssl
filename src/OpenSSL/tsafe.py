@@ -1,10 +1,13 @@
-from OpenSSL import SSL
-_ssl = SSL
-del SSL
+import warnings
+from threading import RLock as _RLock
 
-import threading
-_RLock = threading.RLock
-del threading
+from OpenSSL import SSL as _ssl
+
+
+warnings.warn(
+    "OpenSSL.tsafe is deprecated and will be removed",
+    DeprecationWarning, stacklevel=3
+)
 
 
 class Connection:

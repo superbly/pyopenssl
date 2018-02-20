@@ -6,86 +6,53 @@
 .. py:module:: OpenSSL.crypto
    :synopsis: Generic cryptographic module
 
+.. note::
+
+    `pyca/cryptography`_ is likely a better choice than using this module.
+    It contains a complete set of cryptographic primitives as well as a significantly better and more powerful X509 API.
+    If necessary you can convert to and from cryptography objects using the ``to_cryptography`` and ``from_cryptography`` methods on ``X509``, ``X509Req``, ``CRL``, and ``PKey``.
+
+
 Elliptic curves
 ---------------
 
-.. py:function:: get_elliptic_curves
+.. autofunction:: get_elliptic_curves
 
-    Return a set of objects representing the elliptic curves supported in the
-    OpenSSL build in use.
-
-    The curve objects have a :py:class:`unicode` ``name`` attribute by which
-    they identify themselves.
-
-    The curve objects are useful as values for the argument accepted by
-    :py:meth:`Context.set_tmp_ecdh` to specify which elliptical curve should be
-    used for ECDHE key exchange.
-
-
-.. py:function:: get_elliptic_curve(name)
-
-    Return a single curve object selected by *name*.
-
-    See :py:func:`get_elliptic_curves` for information about curve objects.
-
-    If the named curve is not supported then :py:class:`ValueError` is raised.
-
+.. autofunction:: get_elliptic_curve
 
 Serialization and deserialization
 ---------------------------------
 
-The following serialization functions take one of these constants to
-determine the format:
+The following serialization functions take one of these constants to determine the format.
 
 .. py:data:: FILETYPE_PEM
-             FILETYPE_ASN1
+
+:data:`FILETYPE_PEM` serializes data to a Base64-encoded encoded representation of the underlying ASN.1 data structure. This representation includes delimiters that define what data structure is contained within the Base64-encoded block: for example, for a certificate, the delimiters are ``-----BEGIN CERTIFICATE-----`` and ``-----END CERTIFICATE-----``.
+
+.. py:data:: FILETYPE_ASN1
+
+:data:`FILETYPE_ASN1` serializes data to the underlying ASN.1 data structure. The format used by :data:`FILETYPE_ASN1` is also sometimes referred to as DER.
 
 Certificates
 ~~~~~~~~~~~~
 
-.. py:function:: dump_certificate(type, cert)
+.. autofunction:: dump_certificate
 
-    Dump the certificate *cert* into a buffer string encoded with the type
-    *type*.
-
-.. py:function:: load_certificate(type, buffer)
-
-    Load a certificate (X509) from the string *buffer* encoded with the
-    type *type*.
+.. autofunction:: load_certificate
 
 Certificate signing requests
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. py:function:: dump_certificate_request(type, req)
+.. autofunction:: dump_certificate_request
 
-    Dump the certificate request *req* into a buffer string encoded with the
-    type *type*.
-
-.. py:function:: load_certificate_request(type, buffer)
-
-    Load a certificate request (X509Req) from the string *buffer* encoded with
-    the type *type*.
+.. autofunction:: load_certificate_request
 
 Private keys
 ~~~~~~~~~~~~
 
-.. py:function:: dump_privatekey(type, pkey[, cipher, passphrase])
+.. autofunction:: dump_privatekey
 
-    Dump the private key *pkey* into a buffer string encoded with the type
-    *type*, optionally (if *type* is :py:const:`FILETYPE_PEM`) encrypting it
-    using *cipher* and *passphrase*.
-
-    *passphrase* must be either a string or a callback for providing the
-    pass phrase.
-
-.. py:function:: load_privatekey(type, buffer[, passphrase])
-
-    Load a private key (PKey) from the string *buffer* encoded with the type
-    *type* (must be one of :py:const:`FILETYPE_PEM` and
-    :py:const:`FILETYPE_ASN1`).
-
-    *passphrase* must be either a string or a callback for providing the pass
-    phrase.
+.. autofunction:: load_privatekey
 
 Public keys
 ~~~~~~~~~~~
@@ -99,53 +66,18 @@ Certificate revocation lists
 
 .. autofunction:: dump_crl
 
-.. py:function:: load_crl(type, buffer)
+.. autofunction:: load_crl
 
-    Load Certificate Revocation List (CRL) data from a string *buffer*.
-    *buffer* encoded with the type *type*.  The type *type* must either
-    :py:const:`FILETYPE_PEM` or :py:const:`FILETYPE_ASN1`).
+.. autofunction:: load_pkcs7_data
 
-
-.. py:function:: load_pkcs7_data(type, buffer)
-
-    Load pkcs7 data from the string *buffer* encoded with the type
-    *type*. The type *type* must either :py:const:`FILETYPE_PEM` or
-    :py:const:`FILETYPE_ASN1`).
-
-
-.. py:function:: load_pkcs12(buffer[, passphrase])
-
-    Load pkcs12 data from the string *buffer*. If the pkcs12 structure is
-    encrypted, a *passphrase* must be included.  The MAC is always
-    checked and thus required.
-
-    See also the man page for the C function :py:func:`PKCS12_parse`.
+.. autofunction:: load_pkcs12
 
 Signing and verifying signatures
 --------------------------------
 
-.. py:function:: sign(key, data, digest)
+.. autofunction:: sign
 
-    Sign a data string using the given key and message digest.
-
-    *key* is a :py:class:`PKey` instance.  *data* is a ``str`` instance.
-    *digest* is a ``str`` naming a supported message digest type, for example
-    :py:const:`sha1`.
-
-    .. versionadded:: 0.11
-
-
-.. py:function:: verify(certificate, signature, data, digest)
-
-    Verify the signature for a data string.
-
-    *certificate* is a :py:class:`X509` instance corresponding to the private
-    key which generated the signature.  *signature* is a *str* instance giving
-    the signature itself.  *data* is a *str* instance giving the data to which
-    the signature applies.  *digest* is a *str* instance naming the message
-    digest type of the signature, for example :py:const:`sha1`.
-
-    .. versionadded:: 0.11
+.. autofunction:: verify
 
 
 .. _openssl-x509:
@@ -202,21 +134,42 @@ X509StoreContext objects
 
 .. _openssl-pkey:
 
+X509StoreFlags constants
+------------------------
+
+.. autoclass:: X509StoreFlags
+
+    .. data:: CRL_CHECK
+    .. data:: CRL_CHECK_ALL
+    .. data:: IGNORE_CRITICAL
+    .. data:: X509_STRICT
+    .. data:: ALLOW_PROXY_CERTS
+    .. data:: POLICY_CHECK
+    .. data:: EXPLICIT_POLICY
+    .. data:: INHIBIT_MAP
+    .. data:: NOTIFY_POLICY
+    .. data:: CHECK_SS_SIGNATURE
+    .. data:: CB_ISSUER_CHECK
+
+.. _openssl-x509storeflags:
+
 PKey objects
 ------------
 
 .. autoclass:: PKey
                :members:
 
+.. _openssl-pkcs7:
+
 .. py:data:: TYPE_RSA
              TYPE_DSA
 
     Key type constants.
 
-.. _openssl-pkcs7:
-
 PKCS7 objects
 -------------
+
+PKCS7 objects have the following methods:
 
 .. autoclass:: PKCS7
                :members:
@@ -274,49 +227,16 @@ Exceptions
 
     Generic exception used in the :py:mod:`.crypto` module.
 
+
 Digest names
 ------------
 
-Several of the functions and methods in this module take a digest
-name. These must be strings describing a digest algorithm supported by
-OpenSSL (by ``EVP_get_digestbyname``, specifically). For example,
-:py:const:`b"md5"` or :py:const:`b"sha1"`.
+Several of the functions and methods in this module take a digest name.
+These must be strings describing a digest algorithm supported by OpenSSL (by ``EVP_get_digestbyname``, specifically).
+For example, :const:`b"sha256"` or :const:`b"sha384"`.
 
-More information and a list of these digest names can be found in the
-``EVP_DigestInit(3)`` man page of your OpenSSL installation. This page
-can be found online for the latest version of OpenSSL:
-https://www.openssl.org/docs/crypto/EVP_DigestInit.html
+More information and a list of these digest names can be found in the ``EVP_DigestInit(3)`` man page of your OpenSSL installation.
+This page can be found online for the latest version of OpenSSL:
+https://www.openssl.org/docs/manmaster/man3/EVP_DigestInit.html
 
-Backwards compatible type names
--------------------------------
-
-When PyOpenSSL was originally written, the most current version of
-Python was 2.1. It made a distinction between classes and types. None
-of the versions of Python currently supported by PyOpenSSL still
-enforce that distinction: the type of an instance of an
-:py:class:`X509` object is now simply :py:class:`X509`. Originally,
-the type would have been :py:class:`X509Type`. These days,
-:py:class:`X509Type` and :py:class:`X509` are literally the same
-object. PyOpenSSL maintains these old names for backwards
-compatibility.
-
-Here's a table of these backwards-compatible names:
-
-=========================  =============================
-Type name                  Backwards-compatible name
-=========================  =============================
-:py:class:`X509`           :py:class:`X509Type`
-:py:class:`X509Name`       :py:class:`X509NameType`
-:py:class:`X509Req`        :py:class:`X509ReqType`
-:py:class:`X509Store`      :py:class:`X509StoreType`
-:py:class:`X509Extension`  :py:class:`X509ExtensionType`
-:py:class:`PKey`           :py:class:`PKeyType`
-:py:class:`PKCS7`          :py:class:`PKCS7Type`
-:py:class:`PKCS12`         :py:class:`PKCS12Type`
-:py:class:`NetscapeSPKI`   :py:class:`NetscapeSPKIType`
-:py:class:`CRL`            :py:class:`CRLType`
-=========================  =============================
-
-Some objects, such as :py:class`Revoked`, don't have ``Type``
-equivalents, because they were added after the restriction had been
-lifted.
+.. _`pyca/cryptography`:  https://cryptography.io

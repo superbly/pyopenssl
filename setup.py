@@ -5,7 +5,7 @@
 #
 
 """
-Installation script for the OpenSSL module.
+Installation script for the OpenSSL package.
 """
 
 import codecs
@@ -44,17 +44,29 @@ def find_meta(meta):
     raise RuntimeError("Unable to find __{meta}__ string.".format(meta=meta))
 
 
+URI = find_meta("uri")
+LONG = (
+    read_file("README.rst") + "\n\n" +
+    "Release Information\n" +
+    "===================\n\n" +
+    re.search("(\d{2}.\d.\d \(.*?\)\n.*?)\n\n\n----\n",
+              read_file("CHANGELOG.rst"), re.S).group(1) +
+    "\n\n`Full changelog " +
+    "<{uri}en/stable/changelog.html>`_.\n\n"
+).format(uri=URI)
+
+
 if __name__ == "__main__":
     setup(
         name=find_meta("title"),
         version=find_meta("version"),
         description=find_meta("summary"),
-        long_description=read_file("README.rst"),
+        long_description=LONG,
         author=find_meta("author"),
         author_email=find_meta("email"),
         maintainer="Hynek Schlawack",
         maintainer_email="hs@ox.cx",
-        url=find_meta("uri"),
+        url=URI,
         license=find_meta("license"),
         classifiers=[
             'Development Status :: 6 - Mature',
@@ -68,9 +80,9 @@ if __name__ == "__main__":
             'Programming Language :: Python :: 2.6',
             'Programming Language :: Python :: 2.7',
             'Programming Language :: Python :: 3',
-            'Programming Language :: Python :: 3.3',
             'Programming Language :: Python :: 3.4',
             'Programming Language :: Python :: 3.5',
+            'Programming Language :: Python :: 3.6',
 
             'Programming Language :: Python :: Implementation :: CPython',
             'Programming Language :: Python :: Implementation :: PyPy',
@@ -82,7 +94,21 @@ if __name__ == "__main__":
         packages=find_packages(where="src"),
         package_dir={"": "src"},
         install_requires=[
-            "cryptography>=0.7",
+            # Fix cryptographyMinimum in tox.ini when changing this!
+            "cryptography>=2.1.4",
             "six>=1.5.2"
         ],
+        extras_require={
+            "test": [
+                "flaky",
+                "pretend",
+                # pytest 3.3 doesn't support Python 2.6 anymore.
+                # Remove this pin once we drop Python 2.6 too.
+                "pytest>=3.0.1,<3.3.0",
+            ],
+            "docs": [
+                "sphinx",
+                "sphinx_rtd_theme",
+            ]
+        },
     )

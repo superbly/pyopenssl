@@ -1,13 +1,21 @@
-from warnings import warn
 import sys
+import warnings
 
 from six import PY3, binary_type, text_type
 
 from cryptography.hazmat.bindings.openssl.binding import Binding
+
+
 binding = Binding()
 binding.init_static_locks()
 ffi = binding.ffi
 lib = binding.lib
+
+
+# This is a special CFFI allocator that does not bother to zero its memory
+# after allocation. This has vastly better performance on large allocations and
+# so should be used whenever we don't need the memory zeroed out.
+no_zero_allocator = ffi.new_allocator(should_clear_after_alloc=False)
 
 
 def text(charp):
@@ -32,7 +40,6 @@ def exception_from_error_queue(exception_type):
     associated with the current thread. The err library provides functions to
     obtain these error codes and textual error messages.
     """
-
     errors = []
 
     while True:
@@ -45,6 +52,21 @@ def exception_from_error_queue(exception_type):
             text(lib.ERR_reason_error_string(error))))
 
     raise exception_type(errors)
+
+
+def make_assert(error):
+    """
+    Create an assert function that uses :func:`exception_from_error_queue` to
+    raise an exception wrapped by *error*.
+    """
+    def openssl_assert(ok):
+        """
+        If *ok* is not True, retrieve the error from OpenSSL and raise it.
+        """
+        if ok is not True:
+            exception_from_error_queue(error)
+
+    return openssl_assert
 
 
 def native(s):
@@ -116,7 +138,7 @@ def text_to_bytes_and_warn(label, obj):
         returned.
     """
     if isinstance(obj, text_type):
-        warn(
+        warnings.warn(
             _TEXT_WARNING.format(label),
             category=DeprecationWarning,
             stacklevel=3
